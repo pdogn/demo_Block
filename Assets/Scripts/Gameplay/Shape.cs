@@ -1,0 +1,277 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using DG.Tweening;
+using UnityEngine;
+using UnityEngine.Pool;
+using static UnityEditor.Progress;
+using Random = UnityEngine.Random;
+
+[Serializable]
+public class ShapeRowItem
+{
+    public Item[] cells = new Item[5];
+}
+
+public class Shape : MonoBehaviour
+{
+    public ShapeTemplate shapeTemplate;
+    public ShapeRowItem[] row;
+    public Action OnShapeUpdated;
+    public Item topLeftItem;
+
+    private readonly List<Item> activeItems = new();
+    private ItemTemplate initialTemplate;
+    private Sequence _sequence;
+    private readonly Dictionary<Vector2Int, Item> originalItems = new();
+    private readonly Dictionary<Vector2Int, Item> customItems = new();
+    private static readonly Dictionary<string, ObjectPool<Item>> CustomItemPools = new();
+
+    private void Awake()
+    {
+        initialTemplate = Resources.Load<ItemTemplate>("Items/ItemTemplate 0");
+        UpdateShape(shapeTemplate);
+    }
+
+    private void OnDisable()
+    {
+        //foreach (var kvp in customItems)
+        //{
+        //    if (kvp.Value != null)
+        //    {
+        //        GetOrCreatePool(kvp.Value.GetComponent<Item>()).Release(kvp.Value);
+        //    }
+        //}
+
+        //foreach (var kvp in originalItems)
+        //{
+        //    var position = kvp.Key;
+        //    var i = position.y;
+        //    var j = position.x;
+
+        //    row[i].cells[j] = kvp.Value;
+        //    kvp.Value.gameObject.SetActive(true);
+
+        //    if (activeItems.Contains(customItems[position]))
+        //    {
+        //        activeItems[activeItems.IndexOf(customItems[position])] = kvp.Value;
+        //    }
+        //}
+
+        //customItems.Clear();
+        //originalItems.Clear();
+    }
+
+    public void UpdateShape(ShapeTemplate shapeTemplate)
+    {
+        activeItems.Clear();
+        for (var i = 0; i < row.Length; i++)
+        {
+            for (var j = 0; j < row[i].cells.Length; j++)
+            {
+                var item = row[i].cells[j];
+                item.gameObject.SetActive(shapeTemplate.rows[i].cells[j]);
+                item.SetPosition(new Vector2Int(j, i));
+                if (item.gameObject.activeSelf)
+                {
+                    activeItems.Add(item);
+                }
+            }
+        }
+
+        var centroid = CalculateCentroid();
+        transform.GetChild(0).localPosition -= centroid;
+
+        topLeftItem = GetTopLeftItem();
+
+        OnShapeUpdated?.Invoke();
+    }
+
+    private Item GetTopLeftItem()
+    {
+        for (var i = 0; i < row.Length; i++)
+        {
+            for (var j = 0; j < row[i].cells.Length; j++)
+            {
+                var item = row[i].cells[j];
+                if (item.gameObject.activeSelf)
+                {
+                    return item;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void UpdateColor(ItemTemplate itemTemplate)
+    {
+        //for (var i = 0; i < row.Length; i++)
+        //{
+        //    for (var j = 0; j < row[i].cells.Length; j++)
+        //    {
+        //        var item = row[i].cells[j];
+        //        if (!item.HasBonusItem())
+        //        {
+        //            var position = new Vector2Int(j, i);
+        //            if (itemTemplate.customItemPrefab != null)
+        //            {
+        //                if (!originalItems.ContainsKey(position))
+        //                {
+        //                    originalItems[position] = item;
+        //                }
+
+        //                if (customItems.TryGetValue(position, out var existingCustomItem))
+        //                {
+        //                    GetOrCreatePool(existingCustomItem.GetComponent<Item>()).Release(existingCustomItem);
+        //                }
+
+        //                var newItem = GetOrCreatePool(itemTemplate.customItemPrefab).Get();
+        //                newItem.transform.SetParent(item.transform.parent);
+        //                newItem.transform.position = item.transform.position;
+        //                newItem.transform.localScale = item.transform.localScale;
+        //                newItem.SetPosition(position);
+        //                newItem.gameObject.SetActive(item.gameObject.activeSelf);
+        //                customItems[position] = newItem;
+        //                row[i].cells[j] = newItem;
+        //                item.gameObject.SetActive(false);
+
+        //                if (activeItems.Contains(item))
+        //                {
+        //                    activeItems[activeItems.IndexOf(item)] = newItem;
+        //                }
+        //            }
+        //            else { item.UpdateColor(itemTemplate); }
+        //        }
+        //    }
+        //}
+        for (var i = 0; i < row.Length; i++)
+        {
+            for (var j = 0; j < row[i].cells.Length; j++)
+            {
+                var item = row[i].cells[j];
+                item.UpdateColor(itemTemplate);
+            }
+        }
+    }
+
+    //private ObjectPool<Item> GetOrCreatePool(Item prefab)
+    //{
+    //    if (!CustomItemPools.TryGetValue(prefab.name, out var pool))
+    //    {
+    //        pool = new ObjectPool<Item>(
+    //            createFunc: () =>
+    //            {
+    //                var instantiate = Instantiate(prefab, transform);
+    //                instantiate.name = prefab.name;
+    //                return instantiate;
+    //            },
+    //            actionOnGet: item =>
+    //            {
+    //                if (GetValue(prefab, item, pool))
+    //                {
+    //                    return;
+    //                }
+    //                item.transform.SetParent(transform);
+    //                item.gameObject.SetActive(true);
+    //            },
+    //            actionOnRelease: item =>
+    //            {
+    //                if (GetValue(prefab, item, pool))
+    //                {
+    //                    return;
+    //                }
+    //                if (item?.gameObject != null)
+    //                    item.gameObject.SetActive(false);
+    //            },
+    //            actionOnDestroy: item =>
+    //            {
+    //                if (GetValue(prefab, item, pool))
+    //                {
+    //                    return;
+    //                }
+    //                if (item?.gameObject != null)
+    //                    Destroy(item.gameObject);
+    //            }
+    //        );
+    //        CustomItemPools[prefab.name] = pool;
+    //    }
+    //    return pool;
+    //}
+
+    //private bool GetValue(Item prefab, Item item, ObjectPool<Item> pool)
+    //{
+    //    if (item == null)
+    //    {
+    //        pool.Clear();
+    //        CustomItemPools.Remove(prefab.name);
+    //        return true;
+    //    }
+
+    //    return false;
+    //}
+
+    public List<Item> GetActiveItems()
+    {
+        return activeItems;
+    }
+
+    //public void SetBonus(BonusItemTemplate bonus, int maxValue)
+    //{
+    //    maxValue = Mathf.Min(maxValue, 2);
+    //    var bonusesAssigned = 0;
+    //    var lastBonusIndex = -2; // Initialize to -2 to ensure the first item can be assigned a bonus
+    //    var bonusAssigned = false;
+
+    //    for (var i = 0; i < activeItems.Count; i++)
+    //    {
+    //        if (bonusesAssigned >= maxValue)
+    //        {
+    //            break;
+    //        }
+
+    //        if (i - lastBonusIndex > 1 && Random.Range(0, 3) == 0)
+    //        {
+    //            SetBonus(activeItems[i], bonus);
+    //            bonusesAssigned++;
+    //            lastBonusIndex = i;
+    //            bonusAssigned = true;
+    //        }
+    //    }
+
+    //    // Ensure at least one item gets a bonus if none were assigned
+    //    if (!bonusAssigned && activeItems.Count > 0)
+    //    {
+    //        SetBonus(activeItems[0], bonus);
+    //    }
+    //}
+
+    //private void SetBonus(Item item, BonusItemTemplate bonus)
+    //{
+    //    item.UpdateColor(initialTemplate);
+    //    item.SetBonus(bonus);
+    //}
+
+    //public bool HasBonusItem()
+    //{
+    //    return activeItems.Any(item => item.HasBonusItem());
+    //}
+
+    public Vector3 CalculateCentroid()
+    {
+        var centroid = Vector3.zero;
+        var items = GetActiveItems();
+
+        foreach (var item in items)
+        {
+            centroid += item.transform.position;
+        }
+
+        if (items.Count > 0)
+        {
+            centroid /= items.Count;
+        }
+
+        return transform.InverseTransformPoint(centroid);
+    }
+}
