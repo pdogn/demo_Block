@@ -17,6 +17,11 @@ public class PoolObject : MonoBehaviour
         {
             SetPrefab(prefab);
         }
+        else
+        {
+            Debug.LogWarning("Prefab to pool null");
+            return;
+        }
     }
 
     public void SetPrefab(GameObject newPrefab)

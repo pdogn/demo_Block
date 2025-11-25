@@ -59,7 +59,8 @@ public class FieldManager : MonoBehaviour
         }
         return 100f; // Default size
     }
-    
+
+
     public List<Cell> GetFilledLines(bool checkRows, Dictionary<Cell, Item> highlightedCells)
     {
         List<Cell> filledLines = new List<Cell>();
@@ -381,6 +382,17 @@ public class FieldManager : MonoBehaviour
             for (int i = 0; i < cells.GetLength(0); i++)
             {
                 cells[i, col].ClearFilledCell();
+            }
+        }
+    }
+
+    public void ClearData()
+    {
+        for (int i = 0; i < cells.GetLength(0); i++)
+        {
+            for (int j = 0; j < cells.GetLength(1); j++)
+            {
+                cells[i, j].ClearData();
             }
         }
     }

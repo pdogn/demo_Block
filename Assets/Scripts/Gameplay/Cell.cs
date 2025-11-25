@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,8 +9,6 @@ public class Cell : MonoBehaviour
     public bool busy;
     private ItemTemplate saveTemplate;
     private BoxCollider2D _boxCollider2D;
-    private Item originalItem;
-    private Item customItem;
 
     private void Awake()
     {
@@ -26,7 +24,7 @@ public class Cell : MonoBehaviour
     private IEnumerator UpdateItem()
     {
         yield return new WaitForSeconds(0.1f);
-        _boxCollider2D.size = transform.GetComponent<RectTransform>().sizeDelta;
+        _boxCollider2D.size = transform.GetComponent<RectTransform>().sizeDelta - new Vector2(3, 3);
         item.transform.position = transform.position;
     }
     
@@ -57,19 +55,6 @@ public class Cell : MonoBehaviour
 
     public void HighlightCell(ItemTemplate itemTemplate)
     {
-        if (originalItem != null)
-        {
-            if (customItem != null)
-            {
-                Destroy(customItem.gameObject);
-                customItem = null;
-            }
-            //item = originalItem;
-            item.gameObject.SetActive(true);
-            originalItem = null;
-            group = item.GetComponent<CanvasGroup>();
-        }
-
         item.FillIcon(itemTemplate);
         group.alpha = 0.3f;
     }
@@ -94,14 +79,6 @@ public class Cell : MonoBehaviour
 
     public void ClearCell()
     {
-        if (originalItem != null)
-        {
-            item = originalItem;
-            item.gameObject.SetActive(true);
-            originalItem = null;
-            group = item.GetComponent<CanvasGroup>();
-        }
-
         item.transform.localScale = Vector3.one;
         
         if (saveTemplate != null && !busy)
@@ -121,7 +98,8 @@ public class Cell : MonoBehaviour
             saveTemplate = null;
         }
     }
-    
+
+    //Xóa hàng/ cột
     public void ClearFilledCell()
     {
         busy = false;
@@ -136,5 +114,12 @@ public class Cell : MonoBehaviour
         {
             group.alpha = 0;
         }
+    }
+
+    public void ClearData()
+    {
+        saveTemplate = null;
+        busy = false;
+        group.alpha = 0;
     }
 }

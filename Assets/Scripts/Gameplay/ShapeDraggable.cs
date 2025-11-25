@@ -299,15 +299,22 @@ public class ShapeDraggable : MonoBehaviour
             var highlightedCells = highlightManager.GetHighlightedCells();
             
             var filledRows = field.GetFilledLines(true, highlightedCells);
-            if (filledRows.Count > 0)
+            var filledColumns = field.GetFilledLines(false, highlightedCells);
+
+            if (filledRows.Count > 0 && filledColumns.Count <= 0)
             {
                 highlightManager.HighlightFill(filledRows, _items[0].itemTemplate);
             }
             
-            var filledColumns = field.GetFilledLines(false, highlightedCells);
-            if (filledColumns.Count > 0)
+            if (filledColumns.Count > 0 && filledRows.Count <= 0)
             {
                 highlightManager.HighlightFill(filledColumns, _items[0].itemTemplate);
+            }
+
+            if(filledRows.Count > 0 && filledColumns.Count > 0)
+            {
+                var filledBoth = filledRows.Concat(filledColumns).ToList();
+                highlightManager.HighlightFill(filledBoth, _items[0].itemTemplate);
             }
         }
     }

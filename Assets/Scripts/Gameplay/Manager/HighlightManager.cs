@@ -6,7 +6,10 @@ public class HighlightManager : MonoBehaviour
 {
     private Dictionary<Cell, Item> highlightedCells = new Dictionary<Cell, Item>();
     private List<Cell> highlightedFilledLines = new List<Cell>();
-    
+
+    [SerializeField]
+    public OutLine outLinePrefab;
+
     public Dictionary<Cell, Item> GetHighlightedCells()
     {
         return highlightedCells;
@@ -39,6 +42,26 @@ public class HighlightManager : MonoBehaviour
         ClearFilledLinesHighlight();
     }
     
+    //public void HighlightFillBothRowAndCol(List<Cell> cells, ItemTemplate itemTemplate)
+    //{
+    //    foreach (var cell in highlightedFilledLines.ToList())
+    //    {
+    //        if (cell != null)
+    //        {
+    //            cell.ClearCell();
+    //            highlightedFilledLines.Remove(cell);
+    //        }
+    //    }
+    //    foreach (var cell in cells)
+    //    {
+    //        if (cell != null && itemTemplate != null && !highlightedCells.ContainsKey(cell) && !highlightedFilledLines.Contains(cell))
+    //        {
+    //            cell.HighlightCellFill(itemTemplate);
+    //            highlightedFilledLines.Add(cell);
+    //        }
+    //    }
+    //}
+
     public void HighlightFill(List<Cell> cells, ItemTemplate itemTemplate)
     {
         var cellsToKeep = new HashSet<Cell>(cells);
@@ -61,7 +84,7 @@ public class HighlightManager : MonoBehaviour
             }
         }
     }
-    
+
     public void ClearFilledLinesHighlight()
     {
         foreach (var cell in highlightedFilledLines)
@@ -73,9 +96,23 @@ public class HighlightManager : MonoBehaviour
         }
         highlightedFilledLines.Clear();
     }
-    
+
+    ////unfinished///
+    //public void ShowOutLine(Vector3 pos)
+    //{
+    //    var outline = PoolObject.GetObject(outLinePrefab.gameObject);
+    //    var outLineComponent = outline.GetComponent<OutLine>();
+    //    outLineComponent.SetRowOrCol(pos);
+    //}
+
     public void OnDragEndedWithoutPlacement()
     {
+    }
+
+    public void ClearData()
+    {
+        highlightedCells.Clear();
+        highlightedFilledLines.Clear();
     }
 }
 

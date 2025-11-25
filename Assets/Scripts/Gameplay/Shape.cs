@@ -4,7 +4,6 @@ using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Pool;
-using static UnityEditor.Progress;
 using Random = UnityEngine.Random;
 
 [Serializable]
@@ -273,5 +272,10 @@ public class Shape : MonoBehaviour
         }
 
         return transform.InverseTransformPoint(centroid);
+    }
+
+    public void ClearData()
+    {
+
     }
 }

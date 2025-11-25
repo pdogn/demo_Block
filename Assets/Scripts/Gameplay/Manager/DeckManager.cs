@@ -137,5 +137,41 @@ public class DeckManager : MonoBehaviour
                 }
             }
         }
+
+        int count = cellDecks.Count(d => d.shape != null);
+        Debug.Log("count: " + count);
+        if (count > 0)
+        {
+            bool checkGameOver = true;
+            foreach (var cellDeck in cellDecks)
+            {
+                if (cellDeck.shape != null)
+                {
+                    if (field.CanPlaceShape(cellDeck.shape))
+                    {
+                        checkGameOver = false;
+                        break;
+                    }
+                }
+            }
+
+            //bool checkGameOver = !cellDecks.Any(deck => deck.shape != null && field.CanPlaceShape(deck.shape));
+            if (checkGameOver)
+            {
+                Debug.LogWarning("Faillllll");
+                UIManager.Instance.ShowGameOverUi();
+            }
+        }
+    }
+
+    public void ClearData()
+    {
+        foreach (var cellDeck in cellDecks)
+        {
+            if (cellDeck.shape == null) continue;
+            RemoveUsedShapes(cellDeck.shape);
+            cellDeck.shape = null;
+        }
+        FillCellDecks();
     }
 }
